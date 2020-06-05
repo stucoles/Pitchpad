@@ -10,6 +10,8 @@ import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import kotlin.math.max
+import kotlin.math.min
 
 class CustomMidiController(context: Context) {
 
@@ -84,12 +86,10 @@ class CustomMidiController(context: Context) {
     }
 
 
-    //TODO: send a MIDI event
     private fun send(data: MidiEvent) {
         inputPort?.send(data.sendable, 0, data.sendable.size)
     }
 
-    //Todo: implement sendNoteOn
     fun sendNoteOn(noteNumber: Int, velocity: Int, channel: Int = 0) {
         send(
             MidiEvent(
@@ -101,15 +101,53 @@ class CustomMidiController(context: Context) {
         )
     }
 
-    //TODO: implement sendNoteOff
     fun sendNoteOff(noteNumber: Int, channel: Int = 0) {
         //I am using a velocity of 0 for note-off so that running state can be implemented in the future
         send(MidiEvent(MidiEvent.TYPE_NOTE_ON, channel.toByte(), noteNumber.toByte(), 0.toByte()))
     }
 
     //TODO: implement sendPitchBend
+
+    //Requires: nothing
+    //Modifies: midimanager
+    //Effects: changes the pitch bend intensity. Takes in an int between -8192 and 8192 and sends
+    //the matching pitch bend value in binary. If the int passed in is outside the range, it defaults
+    //to the maximum or minimum, depending.
     fun sendPitchBend(intensity: Int, channel: Int = 0) {
-        TODO("pitchBend is the end goal but seems difficult")
+
+        //Per the official spec, MIDI pitch bend messages are sent as two seven-bit numbers
+        // prefixed with zeros, together forming 14 bits of resolution. This means that the first
+        // data byte, the "most significant bit", contains the fine-detail information,
+        // and its the second data byte that handles more coarse pitch control.
+
+        var unsignedIntensity = intensity + 8192
+        unsignedIntensity = min(unsignedIntensity, 16383)
+        unsignedIntensity = max(unsignedIntensity, 0)
+
+        val smallPart = unsignedIntensity % 128
+        val bigPart = unsignedIntensity - smallPart
+
+        //the small part will be some number under 128, so we can write that directly to a seven-bit
+        //digit
+        val firstDataByte = smallPart.toByte()
+
+        //this part takes the rest of the data and right shifts the binary representation to fit
+        //in our seven-bit representation. i really don't know who decided seven-bit was a good idea,
+        //but whatever.
+        val secondDataByte = bigPart.shr(7).toByte()
+
+        //actually send the bytes!
+        send(
+            MidiEvent(
+                MidiEvent.TYPE_PITCH_BEND,
+                channel.toByte(),
+                firstDataByte,
+                secondDataByte
+            )
+        )
+
+        Log.i("sendPitchBend", "pitch bend intensity set to $intensity")
+
     }
 
     //TODO: implement sendModBend
@@ -121,6 +159,5 @@ class CustomMidiController(context: Context) {
     fun sendValueChange(controlNumber: Int, intensity: Int, channel: Int = 0) {
         TODO("This would sort of be the holy grail")
     }
-
 
 }

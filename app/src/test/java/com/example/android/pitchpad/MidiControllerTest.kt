@@ -1,15 +1,14 @@
 package com.example.android.pitchpad
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class MidiNoteOnTest {
+class MidiSendTest {
     @Test
     fun middleC_on_fullVelocity_isCorrect() {
         val correctArray = ByteArray(3)
@@ -85,5 +84,52 @@ class MidiNoteOnTest {
             assert(receivedArray[i] == correctArray[i])
         }
     }
+
+
+    @Test
+    fun pitch_bend_zero_is_correct() {
+        val correctArray = ByteArray(3)
+        correctArray[0] = (-32).toByte()
+        correctArray[1] = 0.toByte()
+        correctArray[2] = 0x40.toByte()
+
+        val receivedArray = MidiEvent(MidiEvent.TYPE_PITCH_BEND, 0, 0, 64).sendable
+
+        assertEquals(receivedArray.size, correctArray.size)
+        for(i in correctArray.indices){
+            assert(receivedArray[i] == correctArray[i])
+        }
+    }
+
+    @Test
+    fun pitch_bend_max_is_correct() {
+        val correctArray = ByteArray(3)
+        correctArray[0] = (-32).toByte()
+        correctArray[1] = 127.toByte()
+        correctArray[2] = 127.toByte()
+
+        val receivedArray = MidiEvent(MidiEvent.TYPE_PITCH_BEND, 0, 127, 127).sendable
+
+        assertEquals(receivedArray.size, correctArray.size)
+        for(i in correctArray.indices){
+            assert(receivedArray[i] == correctArray[i])
+        }
+    }
+
+    @Test
+    fun pitch_bend_min_is_correct() {
+        val correctArray = ByteArray(3)
+        correctArray[0] = (-32).toByte()
+        correctArray[1] = 127.toByte()
+        correctArray[2] = 127.toByte()
+
+        val receivedArray = MidiEvent(MidiEvent.TYPE_PITCH_BEND, 0, 0, 0).sendable
+
+        assertEquals(receivedArray.size, correctArray.size)
+        for(i in correctArray.indices){
+            assert(receivedArray[i] == correctArray[i])
+        }
+    }
+
 
 }
