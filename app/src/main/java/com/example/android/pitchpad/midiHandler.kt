@@ -106,8 +106,6 @@ class CustomMidiController(context: Context) {
         send(MidiEvent(MidiEvent.TYPE_NOTE_ON, channel.toByte(), noteNumber.toByte(), 0.toByte()))
     }
 
-    //TODO: implement sendPitchBend
-
     //Requires: nothing
     //Modifies: midimanager
     //Effects: changes the pitch bend intensity. Takes in an int between -8192 and 8192 and sends

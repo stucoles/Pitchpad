@@ -1,11 +1,13 @@
 package com.example.android.pitchpad
 
-import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 
 
@@ -14,70 +16,72 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        Log.v("MainActivity.onCreate", "onCreate run")
+
+        try {
+            //assign switch to a value to later give it an action
+            val customSwitch = findViewById<Switch>(R.id.customC)
+
+            val pitchBar = findViewById<SeekBar>(R.id.seekBar)
+
+            val pitchText = findViewById<TextView>(R.id.pitchText)
+
+            val model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
+
+            model.midiEnabledSuccessfully.observe(
+                this,
+                Observer<Boolean> { midiEnabledSuccessfully ->
+                    if (midiEnabledSuccessfully) {
+                        customSwitch.setOnCheckedChangeListener { _, isChecked ->
+                            if (isChecked) {
+                                model.customMidiController.sendNoteOn(60, 127)
+                            } else {
+                                model.customMidiController.sendNoteOff(60)
+                            }
+                        }
+
+                        pitchBar.setOnSeekBarChangeListener(object :
+                            SeekBar.OnSeekBarChangeListener {
+
+                            override fun onProgressChanged(
+                                seekBar: SeekBar,
+                                amount: Int,
+                                fromUser: Boolean
+                            ) {
+                                // set pitch bend based on the seek bar position, given by amount
+                                model.customMidiController.sendPitchBend(amount)
+                                pitchText.text = "Pitch bend: $amount"
+
+                            }
+
+                            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                                //do nothing
+                            }
+
+                            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                                //reset pitch bend to zero
+                                model.customMidiController.sendPitchBend(0)
+                                pitchBar.progress = 0
+                                pitchText.text = "Pitch bend"
+                            }
+                        })
 
 
-        //assign switch to a value to later give it an action
-        val customSwitch = findViewById<Switch>(R.id.customC)
+                    } else {
+                        Snackbar.make(
+                            findViewById(R.id.rootLayout),
+                            "There are currently no MIDI devices connected",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                        customSwitch.isClickable = false
+                        pitchBar.isClickable = false
+                    }
 
-        val pitchBar = findViewById<SeekBar>(R.id.seekBar)
+                })
 
-        val pitchText = findViewById<TextView>(R.id.pitchText)
-
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_MIDI)) {
-            // do MIDI stuff only if the device won't immediately reject it
-            val customMidiController = CustomMidiController(this.application)
-
-            //Open up the MIDI peripheral controller
-            try {
-                customMidiController.open()
-            } catch (e: AttachedDeviceException) {
-                Snackbar.make(
-                    findViewById(R.id.rootLayout),
-                    "No MIDI devices attached",
-                    Snackbar.LENGTH_LONG
-                ).show()
-                customSwitch.isClickable = false
-                pitchBar.isClickable = false
-            }
-
-            //assign actions to switches
-            customSwitch.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    customMidiController.sendNoteOn(60, 127)
-                } else {
-                    customMidiController.sendNoteOff(60)
-                }
-            }
-
-            //assign pitch send
-            pitchBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
-                override fun onProgressChanged(seekBar: SeekBar, amount: Int, fromUser: Boolean) {
-                    // set pitch bend based on the seek bar position, given by i
-                    customMidiController.sendPitchBend(amount)
-                    pitchText.text = "Pitch bend: $amount"
-
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar) {
-                    //do nothing
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar) {
-                    //reset pitch bend to zero
-                    customMidiController.sendPitchBend(0)
-                    pitchBar.progress = 0
-                    pitchText.text = "Pitch bend"
-                    //Toast.makeText(applicationContext,"stop tracking",Toast.LENGTH_SHORT).show()
-                }
-            })
-
-        } else {
-            Snackbar.make(
-                findViewById(R.id.rootLayout),
-                "Your device does not seem to support MIDI. Sorry :(",
-                Snackbar.LENGTH_LONG
-            ).show()
+        } catch (e: Exception) {
+            Log.i("init", e.message);
         }
+
     }
 }
