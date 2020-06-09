@@ -8,8 +8,6 @@ import android.media.midi.MidiManager
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import kotlin.math.max
 import kotlin.math.min
 
@@ -22,9 +20,9 @@ class CustomMidiController(context: Context) {
     private val midiManager = context.getSystemService(Context.MIDI_SERVICE) as MidiManager
 
     //we store the MIDI devices attached to allow the user to select them
-    private val _attachedDevices = MutableLiveData<List<MidiDeviceInfo>>()
-    val attachedDevices: LiveData<List<MidiDeviceInfo>>
-        get() = _attachedDevices
+    var attachedDevices : List<MidiDeviceInfo>
+
+    //TODO: make devices hotpluggable
 
     //the inputPort is actually the port that we send data down. The thing at the other end receives
     //the input.
@@ -37,7 +35,7 @@ class CustomMidiController(context: Context) {
 
     //on creation of this object, we must find attached midi devices
     init {
-        _attachedDevices.value = midiManager.devices.toList()
+        attachedDevices = midiManager.devices.toList()
     }
 
     fun open() {
@@ -45,7 +43,7 @@ class CustomMidiController(context: Context) {
         close()
 
         //check for attached devices
-        if (attachedDevices.value.isNullOrEmpty()) {
+        if (attachedDevices.isNullOrEmpty()) {
             throw AttachedDeviceException()
         }
 
@@ -54,7 +52,7 @@ class CustomMidiController(context: Context) {
         //up and running.
         //TODO: allow for choosing input device
 
-        val deviceInfo = _attachedDevices.value!!.first()
+        val deviceInfo = attachedDevices.first()
         val properties = deviceInfo.properties
 
         //TODO: convert all log statements to Timber. this is untenable.
@@ -144,18 +142,69 @@ class CustomMidiController(context: Context) {
             )
         )
 
-        Log.i("sendPitchBend", "pitch bend intensity set to $intensity")
+        //Log.i("sendPitchBend", "pitch bend intensity set to $intensity")
 
     }
 
-    //TODO: implement sendModBend
-    fun sendModBend(intensity: Int, channel: Int = 0) {
-        TODO("sendModBend should be similar to pitch bending, but the MIDI packet structure is different")
+    //Sends a control change message
+    fun sendControlChange(
+        controlNumber: Int,
+        intensity: Int,
+        channel: Int = 0,
+        highResolution: Boolean = false
+    ) {
+        //if the value is guaranteed between 0 and 128, this works
+        if (!highResolution) {
+            send(
+                MidiEvent(
+                    MidiEvent.TYPE_CONTROL_CHANGE,
+                    channel.toByte(),
+                    controlNumber.toByte(),
+                    intensity.toByte()
+                )
+            )
+        } else {
+            //break the value into two bits
+            val smallPart = intensity % 128
+            val bigPart = intensity - smallPart
+
+            //the small part will be some number under 128, so we can write that directly to a seven-bit
+            //digit
+            val leastSignificantByte = smallPart.toByte()
+
+            //this part takes the rest of the data and right shifts the binary representation to fit
+            //in our seven-bit representation. i really don't know who decided seven-bit was a good idea,
+            //but whatever.
+            val mostSignificantByte = bigPart.shr(7).toByte()
+
+            //most significant bit
+            send(
+                MidiEvent(
+                    MidiEvent.TYPE_CONTROL_CHANGE,
+                    channel.toByte(),
+                    controlNumber.toByte(),
+                    mostSignificantByte
+                )
+            )
+
+            //least significant bit, which, for the low level bits where these are assigned, is is 32 higher on the list of value
+            //than the most significant bit
+            send(
+                MidiEvent(
+                    MidiEvent.TYPE_CONTROL_CHANGE,
+                    channel.toByte(),
+                    (controlNumber + 32).toByte(),
+                    leastSignificantByte
+                )
+            )
+
+        }
+
     }
 
-    //TODO: implement generic controller send
-    fun sendValueChange(controlNumber: Int, intensity: Int, channel: Int = 0) {
-        TODO("This would sort of be the holy grail")
+    //Mod bend is a pretty common parameter, so I felt it deserved its own function, but this is
+    //really just a wrapper for sendValueChange
+    fun sendModBend(highResolution: Boolean, intensity: Int, channel: Int = 0) {
+        sendControlChange(1, intensity, channel, highResolution)
     }
-
 }

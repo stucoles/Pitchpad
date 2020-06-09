@@ -1,6 +1,10 @@
 package com.example.android.pitchpad
 
-class MidiEvent(private val eventType: Byte, private val eventChannel: Byte, private vararg val dataToSend: Byte) {
+class MidiEvent(
+    private val eventType: Byte,
+    private val eventChannel: Byte,
+    private vararg val dataToSend: Byte
+) {
 
     //contains all ya need to get a bit of data you can actually send out of the object.
     val sendable: ByteArray

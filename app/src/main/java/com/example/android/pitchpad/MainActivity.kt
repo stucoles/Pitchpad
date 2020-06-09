@@ -5,13 +5,17 @@ import android.util.Log
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
+import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
+
+    var modHighResolution = false;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,9 +28,23 @@ class MainActivity : AppCompatActivity() {
 
             val pitchBar = findViewById<SeekBar>(R.id.seekBar)
 
+            val modBar = findViewById<SeekBar>(R.id.modBar)
+
+            val modButton = findViewById<ToggleButton>(R.id.modToggle)
+
             val pitchText = findViewById<TextView>(R.id.pitchText)
 
             val model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
+
+            modButton.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    modBar.max = 16384
+                    modHighResolution = true;
+                } else {
+                    modBar.max = 128
+                    modHighResolution = false;
+                }
+            }
 
             model.midiEnabledSuccessfully.observe(
                 this,
@@ -66,6 +84,31 @@ class MainActivity : AppCompatActivity() {
                             }
                         })
 
+                        modBar.setOnSeekBarChangeListener(object :
+                            SeekBar.OnSeekBarChangeListener {
+
+                            override fun onProgressChanged(
+                                seekBar: SeekBar,
+                                amount: Int,
+                                fromUser: Boolean
+                            ) {
+                                // set pitch bend based on the seek bar position, given by amount
+                                model.customMidiController.sendModBend(modHighResolution, amount)
+                                modText.text = "Modulation: $amount"
+
+                            }
+
+                            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                                //do nothing
+                            }
+
+                            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                                //reset pitch bend to zero
+                                model.customMidiController.sendModBend(modHighResolution, 0)
+                                modBar.progress = 0
+                                modText.text = "Modulation"
+                            }
+                        })
 
                     } else {
                         Snackbar.make(
