@@ -17,29 +17,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="0dp"
+    <fragment
+        android:id="@+id/pichBendFragment"
+        android:name="com.example.android.pitchpad.PitchBendFragment"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
-        android:max="8192"
-        android:min="-8192"
-        android:progress="50"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/customC" />
-
-    <TextView
-        android:id="@+id/pitchText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Pitch bend"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/seekBar" />
+        app:layout_constraintTop_toBottomOf="@id/customC" />
 
     <SeekBar
         android:id="@+id/modBar"
@@ -53,7 +38,7 @@
         android:progress="0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pitchText" />
+        app:layout_constraintTop_toBottomOf="@+id/pichBendFragment" />
 
     <TextView
         android:id="@+id/modText"
@@ -75,5 +60,7 @@
         app:layout_constraintTop_toBottomOf="@id/modText"
         tools:layout_editor_absoluteX="187dp"
         tools:layout_editor_absoluteY="599dp" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

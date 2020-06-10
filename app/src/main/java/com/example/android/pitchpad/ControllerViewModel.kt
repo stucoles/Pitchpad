@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
 
 //implement a view model to allow the midi controller to persist across changes in state
@@ -16,11 +15,6 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
     val customMidiController = CustomMidiController(application)
 
     private val _attachedDevices = MutableLiveData<List<MidiDeviceInfo>>()
-
-    private val _message = MutableLiveData<String>()
-
-    val message : LiveData<String>
-        get() = _message
 
     val attachedDevices
         get(): LiveData<List<MidiDeviceInfo>> {
@@ -39,7 +33,6 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
 
     init {
         Log.v("MidiControllerViewModel", "initializing MidiControllerViewModel")
-        _message.value = "enabled midi"
 
         if (!application.packageManager.hasSystemFeature(PackageManager.FEATURE_MIDI)) {
             throw NoMidiSupportException()
@@ -63,8 +56,4 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
         customMidiController.close()
         super.onCleared()
     }
-}
-
-class testViewModel : ViewModel(){
-    var message = "ugh"
 }

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.SeekBar
 import android.widget.Switch
-import android.widget.TextView
 import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -25,14 +24,10 @@ class MainActivity : AppCompatActivity() {
         try {
             //assign switch to a value to later give it an action
             val customSwitch = findViewById<Switch>(R.id.customC)
-
-            val pitchBar = findViewById<SeekBar>(R.id.seekBar)
-
+            
             val modBar = findViewById<SeekBar>(R.id.modBar)
 
             val modButton = findViewById<ToggleButton>(R.id.modToggle)
-
-            val pitchText = findViewById<TextView>(R.id.pitchText)
 
             val model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
 
@@ -58,31 +53,6 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
 
-                        pitchBar.setOnSeekBarChangeListener(object :
-                            SeekBar.OnSeekBarChangeListener {
-
-                            override fun onProgressChanged(
-                                seekBar: SeekBar,
-                                amount: Int,
-                                fromUser: Boolean
-                            ) {
-                                // set pitch bend based on the seek bar position, given by amount
-                                model.customMidiController.sendPitchBend(amount)
-                                pitchText.text = "Pitch bend: $amount"
-
-                            }
-
-                            override fun onStartTrackingTouch(seekBar: SeekBar) {
-                                //do nothing
-                            }
-
-                            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                                //reset pitch bend to zero
-                                model.customMidiController.sendPitchBend(0)
-                                pitchBar.progress = 0
-                                pitchText.text = "Pitch bend"
-                            }
-                        })
 
                         modBar.setOnSeekBarChangeListener(object :
                             SeekBar.OnSeekBarChangeListener {
@@ -117,7 +87,6 @@ class MainActivity : AppCompatActivity() {
                             Snackbar.LENGTH_LONG
                         ).show()
                         customSwitch.isClickable = false
-                        pitchBar.isClickable = false
                     }
 
                 })
