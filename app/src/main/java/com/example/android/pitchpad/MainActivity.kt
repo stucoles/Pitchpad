@@ -2,19 +2,16 @@ package com.example.android.pitchpad
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.SeekBar
 import android.widget.Switch
-import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
 
-    var modHighResolution = false;
+    var modHighResolution = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,26 +21,35 @@ class MainActivity : AppCompatActivity() {
         try {
             //assign switch to a value to later give it an action
             val customSwitch = findViewById<Switch>(R.id.customC)
-            
-            val modBar = findViewById<SeekBar>(R.id.modBar)
-
-            val modButton = findViewById<ToggleButton>(R.id.modToggle)
+//
+//            val modBar = findViewById<SeekBar>(R.id.modBar)
+//
+//            val modButton = findViewById<ToggleButton>(R.id.modToggle)
 
             val model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
 
-            modButton.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    modBar.max = 16384
-                    modHighResolution = true;
-                } else {
-                    modBar.max = 128
-                    modHighResolution = false;
-                }
-            }
+            val modWheel = GenericParameterFragment()
+
+//            modButton.setOnCheckedChangeListener { _, isChecked ->
+//                if (isChecked) {
+//                    modBar.max = 16384
+//                    modHighResolution = true;
+//                } else {
+//                    modBar.max = 128
+//                    modHighResolution = false;
+//                }
+//            }
+
+            modWheel.arguments = modWheel.makeGenericBundle("Modulation", 1)
+
+            val fragmentManager = supportFragmentManager
+            val fragmentTransaction = fragmentManager.beginTransaction()
+            fragmentTransaction.add(R.id.frameToHoldModulation, modWheel)
+            fragmentTransaction.commit()
 
             model.midiEnabledSuccessfully.observe(
                 this,
-                Observer<Boolean> { midiEnabledSuccessfully ->
+                Observer { midiEnabledSuccessfully ->
                     if (midiEnabledSuccessfully) {
                         customSwitch.setOnCheckedChangeListener { _, isChecked ->
                             if (isChecked) {
@@ -53,32 +59,31 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
 
-
-                        modBar.setOnSeekBarChangeListener(object :
-                            SeekBar.OnSeekBarChangeListener {
-
-                            override fun onProgressChanged(
-                                seekBar: SeekBar,
-                                amount: Int,
-                                fromUser: Boolean
-                            ) {
-                                // set pitch bend based on the seek bar position, given by amount
-                                model.customMidiController.sendModBend(modHighResolution, amount)
-                                modText.text = "Modulation: $amount"
-
-                            }
-
-                            override fun onStartTrackingTouch(seekBar: SeekBar) {
-                                //do nothing
-                            }
-
-                            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                                //reset pitch bend to zero
-                                model.customMidiController.sendModBend(modHighResolution, 0)
-                                modBar.progress = 0
-                                modText.text = "Modulation"
-                            }
-                        })
+//                        modBar.setOnSeekBarChangeListener(object :
+//                            SeekBar.OnSeekBarChangeListener {
+//
+//                            override fun onProgressChanged(
+//                                seekBar: SeekBar,
+//                                amount: Int,
+//                                fromUser: Boolean
+//                            ) {
+//                                // set pitch bend based on the seek bar position, given by amount
+//                                model.customMidiController.sendModBend(modHighResolution, amount)
+//                                modText.text = "Modulation: $amount"
+//
+//                            }
+//
+//                            override fun onStartTrackingTouch(seekBar: SeekBar) {
+//                                //do nothing
+//                            }
+//
+//                            override fun onStopTrackingTouch(seekBar: SeekBar) {
+//                                //reset pitch bend to zero
+//                                model.customMidiController.sendModBend(modHighResolution, 0)
+//                                modBar.progress = 0
+//                                modText.text = "Modulation"
+//                            }
+//                        })
 
                     } else {
                         Snackbar.make(
@@ -92,8 +97,10 @@ class MainActivity : AppCompatActivity() {
                 })
 
         } catch (e: Exception) {
-            Log.i("init", e.message);
+            Log.i("init", e.message)
         }
 
     }
+
+
 }

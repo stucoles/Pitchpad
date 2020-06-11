@@ -63,4 +63,7 @@ dependencies {
 
     // Testing Navigation
     androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
+
+    //verticalSeekBar
+    implementation 'com.lukelorusso:verticalseekbar:1.2.3'
 }
