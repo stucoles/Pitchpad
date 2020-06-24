@@ -16,6 +16,19 @@ class CustomMidiController(context: Context) {
     //this class needs a Handler
     private val handler: Handler by lazy { Handler(Looper.getMainLooper()) }
 
+    private val deviceCallback = object : MidiManager.DeviceCallback(){
+        override fun onDeviceAdded(device: MidiDeviceInfo?) {
+            attachedDevices = midiManager.devices.toList()
+        }
+
+        override fun onDeviceRemoved(device: MidiDeviceInfo?) {
+            if (device === activeMidiDevice?.info){
+                close()
+            }
+            attachedDevices = midiManager.devices.toList()
+        }
+    }
+
     //we need a midiManager object and some variables to store the data it creates
     private val midiManager = context.getSystemService(Context.MIDI_SERVICE) as MidiManager
 
@@ -31,28 +44,33 @@ class CustomMidiController(context: Context) {
     //TODO: get an output port going once this setup works to make the whole thing controllable from the outside
 
     //the midiDevice assists in sending data. it has the ports
-    private var midiDevice: MidiDevice? = null
+    private var activeMidiDevice: MidiDevice? = null
 
     //on creation of this object, we must find attached midi devices
     init {
         attachedDevices = midiManager.devices.toList()
+
+        //set it up so that it handles when devices are plugged and unplugged somewhat gracefully
+        midiManager.registerDeviceCallback(deviceCallback, handler)
     }
 
-    fun open() {
-        //first of all, we want the app to seize control, so we close any open midi connections on the ports we hope to use
-        close()
-
+    //if no device is given, just use the first device in the list of attached devices
+    fun open(){
         //check for attached devices
         if (attachedDevices.isNullOrEmpty()) {
             throw AttachedDeviceException()
         }
 
+        open(attachedDevices.first())
+    }
+
+    fun open(deviceInfo: MidiDeviceInfo) {
+        //first of all, we want the app to seize control, so we close any open midi connections on the ports we hope to use
+        close()
         //if there are attached devices, we should be able to choose one and open up communication.
         //for now, it will just use the first one for simplicity of code while I get a proof of concept
         //up and running.
         //TODO: allow for choosing input device
-
-        val deviceInfo = attachedDevices.first()
         val properties = deviceInfo.properties
 
         //TODO: convert all log statements to Timber. this is untenable.
@@ -68,19 +86,18 @@ class CustomMidiController(context: Context) {
         //now we will actually open up the midi device
         //TODO: update for case where the first port is not an input port
         midiManager.openDevice(deviceInfo, {
-            midiDevice = it
+            activeMidiDevice = it
             inputPort = it.openInputPort(deviceInfo.ports.first().portNumber)
         }, handler)
-
     }
 
 
     //This function closes all connections. Make sure to use this when you're done w/ MIDI
     fun close() {
         inputPort?.close()
-        midiDevice?.close()
+        activeMidiDevice?.close()
         inputPort = null
-        midiDevice = null
+        activeMidiDevice = null
     }
 
 
@@ -207,4 +224,7 @@ class CustomMidiController(context: Context) {
     fun sendModBend(highResolution: Boolean, intensity: Int, channel: Int = 0) {
         sendControlChange(1, intensity, channel, highResolution)
     }
+
+
+
 }

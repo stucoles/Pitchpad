@@ -22,14 +22,18 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
             return _attachedDevices
         }
 
+    //enable quick monitoring of the number of devices available
+    private val _numAttachedDevices = MutableLiveData<Int>();
+    val numAttachedDevices
+        get(): LiveData<Int>{
+            _numAttachedDevices.value = customMidiController.attachedDevices.size;
+            return _numAttachedDevices
+        }
+
     //give a method of communicating to the UI whether MIDI is available
     private val _midiEnabledSuccessfully = MutableLiveData<Boolean>()
     val midiEnabledSuccessfully: LiveData<Boolean>
         get() = _midiEnabledSuccessfully
-
-    private val _attachedDevicesExist = MutableLiveData<Boolean>()
-    val attachedDevicesExist: LiveData<Boolean>
-        get() = _attachedDevicesExist
 
     init {
         Log.v("MidiControllerViewModel", "initializing MidiControllerViewModel")
@@ -42,15 +46,13 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
         try {
             customMidiController.open()
             _midiEnabledSuccessfully.value = true
-            _attachedDevicesExist.value = true
-        } catch (e: AttachedDeviceException) {
+        } catch (e: Exception) {
+            Log.e("controllerViewModelinit", e.toString())
             _midiEnabledSuccessfully.value = false
-            _attachedDevicesExist.value = false
         }
 
 
     }
-
 
     override fun onCleared() {
         customMidiController.close()

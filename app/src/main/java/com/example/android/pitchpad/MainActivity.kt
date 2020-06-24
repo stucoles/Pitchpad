@@ -1,7 +1,12 @@
 package com.example.android.pitchpad
 
+import android.media.midi.MidiDeviceInfo
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -9,7 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     var modHighResolution = false
 
@@ -29,6 +34,9 @@ class MainActivity : AppCompatActivity() {
             val model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
 
             val modWheel = GenericParameterFragment()
+
+            val sourcesSpinner = findViewById<Spinner>(R.id.midiInputSpinner)
+
 
 //            modButton.setOnCheckedChangeListener { _, isChecked ->
 //                if (isChecked) {
@@ -59,31 +67,16 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
 
-//                        modBar.setOnSeekBarChangeListener(object :
-//                            SeekBar.OnSeekBarChangeListener {
-//
-//                            override fun onProgressChanged(
-//                                seekBar: SeekBar,
-//                                amount: Int,
-//                                fromUser: Boolean
-//                            ) {
-//                                // set pitch bend based on the seek bar position, given by amount
-//                                model.customMidiController.sendModBend(modHighResolution, amount)
-//                                modText.text = "Modulation: $amount"
-//
-//                            }
-//
-//                            override fun onStartTrackingTouch(seekBar: SeekBar) {
-//                                //do nothing
-//                            }
-//
-//                            override fun onStopTrackingTouch(seekBar: SeekBar) {
-//                                //reset pitch bend to zero
-//                                model.customMidiController.sendModBend(modHighResolution, 0)
-//                                modBar.progress = 0
-//                                modText.text = "Modulation"
-//                            }
-//                        })
+
+                        val sourcesAdapter =
+                            ArrayAdapter<MidiDeviceInfo>(this, android.R.layout.simple_spinner_item)
+                        for (device in model.attachedDevices.value!!) {
+                            //TODO: find a way to clean up the textt shown in the spinner to make it readable
+                            sourcesAdapter.add(device)
+                        }
+                        sourcesSpinner.adapter = sourcesAdapter
+                        sourcesSpinner.onItemSelectedListener = this@MainActivity
+
 
                     } else {
                         Snackbar.make(
@@ -102,5 +95,15 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    //TODO: make these actually select the correct MIDI item
+    override fun onItemSelected(parent: AdapterView<*>, view: View, pos: Int, id: Long) {
+        // An item was selected. You can retrieve the selected item using
+        // parent.getItemAtPosition(pos)
+        Log.i("spinner", "selected ${parent.getItemAtPosition(pos)}")
+    }
 
+    override fun onNothingSelected(parent: AdapterView<*>) {
+        // Another interface callback
+        Log.i("spinner", "nothing selected")
+    }
 }
