@@ -32,7 +32,7 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
     val devicesChanged
         get(): LiveData<Boolean> = _devicesChanged
 
-    fun finishChangingDevices(){
+    fun finishChangingDevices() {
         _devicesChanged.value = false;
     }
 
@@ -67,7 +67,7 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
         //this class needs a Handler
         private val handler: Handler by lazy { Handler(Looper.getMainLooper()) }
 
-        private val deviceCallback = object : MidiManager.DeviceCallback(){
+        private val deviceCallback = object : MidiManager.DeviceCallback() {
             override fun onDeviceAdded(device: MidiDeviceInfo?) {
                 _attachedDevices.value = midiManager.devices.toList()
                 _devicesChanged.value = true;
@@ -75,7 +75,7 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
 
             override fun onDeviceRemoved(device: MidiDeviceInfo?) {
                 _devicesChanged.value = true;
-                if (device === activeMidiDevice?.info){
+                if (device === activeMidiDevice?.info) {
                     close()
                 }
                 _attachedDevices.value = midiManager.devices.toList()
@@ -94,7 +94,7 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
         //enable quick monitoring of the number of devices available
         private val _numAttachedDevices = MutableLiveData<Int>();
         val numAttachedDevices
-            get(): LiveData<Int>{
+            get(): LiveData<Int> {
                 _numAttachedDevices.value = _attachedDevices.value!!.size;
                 return _numAttachedDevices
             }
@@ -117,7 +117,7 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
         }
 
         //if no device is given, just use the first device in the list of attached devices
-        fun open(){
+        fun open() {
             //check for attached devices
             if (attachedDevices.value.isNullOrEmpty()) {
                 throw AttachedDeviceException()
@@ -179,7 +179,14 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
 
         fun sendNoteOff(noteNumber: Int, channel: Int = 0) {
             //I am using a velocity of 0 for note-off so that running state can be implemented in the future
-            send(MidiEvent(MidiEvent.TYPE_NOTE_ON, channel.toByte(), noteNumber.toByte(), 0.toByte()))
+            send(
+                MidiEvent(
+                    MidiEvent.TYPE_NOTE_ON,
+                    channel.toByte(),
+                    noteNumber.toByte(),
+                    0.toByte()
+                )
+            )
         }
 
         //Requires: nothing

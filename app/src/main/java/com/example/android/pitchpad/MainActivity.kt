@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
@@ -18,7 +17,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     var modHighResolution = false
 
-    lateinit var model : MidiControllerViewModel;
+    lateinit var model: MidiControllerViewModel;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +40,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             val fragmentTransaction = fragmentManager.beginTransaction()
             fragmentTransaction.add(R.id.frameToHoldModulation, modWheel)
             fragmentTransaction.commit()
-
+            
             model.midiEnabledSuccessfully.observe(
                 this,
                 Observer { midiEnabledSuccessfully ->
@@ -55,22 +54,23 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                         }
 
 
-                        val sourcesAdapter =
-                            ArrayAdapter<MidiDeviceInfo>(this, android.R.layout.simple_spinner_item)
+                        val sourcesAdapter = MidiSpinnerAdapter(
+                            this,
+                            model.customMidiController.attachedDevices.value!!
+                        )
 
-                        sourcesAdapter.addAll(model.customMidiController.attachedDevices.value!!)
+                        //sourcesAdapter.addAll(model.customMidiController.attachedDevices.value!!)
                         sourcesSpinner.adapter = sourcesAdapter
                         sourcesSpinner.onItemSelectedListener = this@MainActivity
 
                         //set up listeners for connected midi devices to change
-                        model.devicesChanged.observe(this, Observer{ changed ->
-                            if(changed){
+                        model.devicesChanged.observe(this, Observer { changed ->
+                            if (changed) {
                                 sourcesAdapter.clear()
                                 sourcesAdapter.addAll(model.customMidiController.attachedDevices.value!!)
                                 model.finishChangingDevices()
                             }
                         })
-
 
 
                     } else {
