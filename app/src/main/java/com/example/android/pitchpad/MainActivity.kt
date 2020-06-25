@@ -18,6 +18,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     var modHighResolution = false
 
+    lateinit var model : MidiControllerViewModel;
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -26,27 +28,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         try {
             //assign switch to a value to later give it an action
             val customSwitch = findViewById<Switch>(R.id.customC)
-//
-//            val modBar = findViewById<SeekBar>(R.id.modBar)
-//
-//            val modButton = findViewById<ToggleButton>(R.id.modToggle)
 
-            val model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
+            model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
 
             val modWheel = GenericParameterFragment()
 
             val sourcesSpinner = findViewById<Spinner>(R.id.midiInputSpinner)
-
-
-//            modButton.setOnCheckedChangeListener { _, isChecked ->
-//                if (isChecked) {
-//                    modBar.max = 16384
-//                    modHighResolution = true;
-//                } else {
-//                    modBar.max = 128
-//                    modHighResolution = false;
-//                }
-//            }
 
             modWheel.arguments = modWheel.makeGenericBundle("Modulation", 1)
 
@@ -70,12 +57,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
                         val sourcesAdapter =
                             ArrayAdapter<MidiDeviceInfo>(this, android.R.layout.simple_spinner_item)
-                        for (device in model.attachedDevices.value!!) {
-                            //TODO: find a way to clean up the textt shown in the spinner to make it readable
-                            sourcesAdapter.add(device)
-                        }
+
+                        sourcesAdapter.addAll(model.customMidiController.attachedDevices.value!!)
                         sourcesSpinner.adapter = sourcesAdapter
                         sourcesSpinner.onItemSelectedListener = this@MainActivity
+
+                        //set up listeners for connected midi devices to change
+                        model.devicesChanged.observe(this, Observer{ changed ->
+                            if(changed){
+                                sourcesAdapter.clear()
+                                sourcesAdapter.addAll(model.customMidiController.attachedDevices.value!!)
+                                model.finishChangingDevices()
+                            }
+                        })
+
 
 
                     } else {
@@ -95,11 +90,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     }
 
-    //TODO: make these actually select the correct MIDI item
     override fun onItemSelected(parent: AdapterView<*>, view: View, pos: Int, id: Long) {
         // An item was selected. You can retrieve the selected item using
         // parent.getItemAtPosition(pos)
         Log.i("spinner", "selected ${parent.getItemAtPosition(pos)}")
+        model.customMidiController.open(parent.getItemAtPosition(pos) as MidiDeviceInfo);
     }
 
     override fun onNothingSelected(parent: AdapterView<*>) {
