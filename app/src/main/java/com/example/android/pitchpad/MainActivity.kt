@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             val fragmentTransaction = fragmentManager.beginTransaction()
             fragmentTransaction.add(R.id.frameToHoldModulation, modWheel)
             fragmentTransaction.commit()
-            
+
             model.midiEnabledSuccessfully.observe(
                 this,
                 Observer { midiEnabledSuccessfully ->
