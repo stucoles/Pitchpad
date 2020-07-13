@@ -47,16 +47,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                     if (midiEnabledSuccessfully) {
                         customSwitch.setOnCheckedChangeListener { _, isChecked ->
                             if (isChecked) {
-                                model.customMidiController.sendNoteOn(60, 127)
+                                model.sendNoteOn(60, 127)
                             } else {
-                                model.customMidiController.sendNoteOff(60)
+                                model.sendNoteOff(60)
                             }
                         }
 
 
                         val sourcesAdapter = MidiSpinnerAdapter(
                             this,
-                            model.customMidiController.attachedDevices.value!!
+                            model.attachedDevices.value!!
                         )
 
                         //sourcesAdapter.addAll(model.customMidiController.attachedDevices.value!!)
@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                         model.devicesChanged.observe(this, Observer { changed ->
                             if (changed) {
                                 sourcesAdapter.clear()
-                                sourcesAdapter.addAll(model.customMidiController.attachedDevices.value!!)
+                                sourcesAdapter.addAll(model.attachedDevices.value!!)
                                 model.finishChangingDevices()
                             }
                         })
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         // An item was selected. You can retrieve the selected item using
         // parent.getItemAtPosition(pos)
         Log.i("spinner", "selected ${parent.getItemAtPosition(pos)}")
-        model.customMidiController.open(parent.getItemAtPosition(pos) as MidiDeviceInfo);
+        model.openDevice(parent.getItemAtPosition(pos) as MidiDeviceInfo);
     }
 
     override fun onNothingSelected(parent: AdapterView<*>) {

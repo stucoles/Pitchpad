@@ -41,9 +41,4 @@
         android:id="@+id/midiInputSpinner">
     </Spinner>
 
-
-
-
-
-
 </LinearLayout>

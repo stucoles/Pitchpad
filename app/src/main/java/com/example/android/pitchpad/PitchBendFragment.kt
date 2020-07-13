@@ -36,7 +36,7 @@ class PitchBendFragment : Fragment() {
 
             pitchWheel.setOnProgressChangeListener { amount ->
                 val realAmount = amount - 8192
-                viewModel.customMidiController.sendPitchBend(realAmount)
+                viewModel.sendPitchBend(realAmount)
                 pitchText.text = "Pitch bend: $realAmount"
             }
 

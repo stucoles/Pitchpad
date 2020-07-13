@@ -20,7 +20,7 @@ import kotlin.math.min
 //implement a view model to allow the midi controller to persist across changes in state
 class MidiControllerViewModel(application: Application) : AndroidViewModel(application) {
 
-    val customMidiController = CustomMidiController(application)
+    private val customMidiController = CustomMidiController(application)
 
     //give a method of communicating to the UI whether MIDI is available
     private val _midiEnabledSuccessfully = MutableLiveData<Boolean>()
@@ -32,9 +32,8 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
     val devicesChanged
         get(): LiveData<Boolean> = _devicesChanged
 
-    fun finishChangingDevices() {
-        _devicesChanged.value = false;
-    }
+    val attachedDevices
+        get(): LiveData<List<MidiDeviceInfo>> = customMidiController.attachedDevices;
 
     init {
         Log.v("MidiControllerViewModel", "initializing MidiControllerViewModel")
@@ -60,9 +59,44 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
         super.onCleared()
     }
 
+    fun finishChangingDevices() {
+        _devicesChanged.value = false;
+    }
+
+    fun sendNoteOn(noteNumber: Int, velocity: Int, channel: Int = 0) {
+        customMidiController.sendNoteOn(noteNumber, velocity, channel)
+    }
+
+    fun sendNoteOff(noteNumber: Int, channel: Int = 0) {
+        customMidiController.sendNoteOn(noteNumber, 0, channel)
+    }
+
+    //Mod bend is a pretty common parameter, so I felt it deserved its own function, but this is
+    //really just a wrapper for sendValueChange
+    fun sendModBend(highResolution: Boolean, intensity: Int, channel: Int = 0) {
+        customMidiController.sendControlChange(1, intensity, channel, highResolution)
+    }
+
+    fun sendPitchBend(intensity: Int, channel: Int = 0) {
+        customMidiController.sendPitchBend(intensity, channel)
+    }
+
+    fun sendControlChange(
+        controlNumber: Int,
+        intensity: Int,
+        channel: Int = 0,
+        highResolution: Boolean = false
+    ) {
+        customMidiController.sendControlChange(controlNumber, intensity, channel, highResolution)
+    }
+
+    fun openDevice(deviceInfo: MidiDeviceInfo){
+        customMidiController.open(deviceInfo);
+    }
+
+
     //we'll do most of our work through this customMidiController object
-    //TODO: refactor to make this class private. There's no need for it to be exposed to the other classes
-    inner class CustomMidiController(context: Context) {
+    private inner class CustomMidiController(context: Context) {
 
         //this class needs a Handler
         private val handler: Handler by lazy { Handler(Looper.getMainLooper()) }
@@ -166,6 +200,7 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
             inputPort?.send(data.sendable, 0, data.sendable.size)
         }
 
+        //TODO: implement running state note send
         fun sendNoteOn(noteNumber: Int, velocity: Int, channel: Int = 0) {
             send(
                 MidiEvent(
@@ -285,12 +320,6 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
 
             }
 
-        }
-
-        //Mod bend is a pretty common parameter, so I felt it deserved its own function, but this is
-        //really just a wrapper for sendValueChange
-        fun sendModBend(highResolution: Boolean, intensity: Int, channel: Int = 0) {
-            sendControlChange(1, intensity, channel, highResolution)
         }
     }
 

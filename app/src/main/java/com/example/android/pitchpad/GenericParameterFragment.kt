@@ -51,7 +51,7 @@ class GenericParameterFragment : Fragment() {
             if(startsAtHalf) {
                 genericWheel.setOnProgressChangeListener { amount ->
                     val realAmount = amount - halfValue
-                    viewModel.customMidiController.sendControlChange(controlNumber, realAmount, channel, highResolution)
+                    viewModel.sendControlChange(controlNumber, realAmount, channel, highResolution)
                     parameterText.text = "$parameterName: $realAmount"
                 }
                 genericWheel.setOnReleaseListener {
@@ -62,7 +62,7 @@ class GenericParameterFragment : Fragment() {
             }
             else{
                 genericWheel.setOnProgressChangeListener { amount ->
-                    viewModel.customMidiController.sendControlChange(controlNumber, amount, channel, highResolution)
+                    viewModel.sendControlChange(controlNumber, amount, channel, highResolution)
                     parameterText.text = "$parameterName: $amount"
                 }
                 genericWheel.setOnReleaseListener {
