@@ -169,6 +169,10 @@ class MidiControllerViewModel(application: Application) : AndroidViewModel(appli
             //up and running.
             val properties = deviceInfo.properties
 
+            if (deviceInfo == null) {
+                throw AttachedDeviceException()
+            }
+
             Log.i(
                 "midiHandler init",
                 "there are " + deviceInfo.inputPortCount + " ports available for input"

@@ -4,10 +4,10 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:orientation="vertical"
     android:layout_gravity="center"
-    android:gravity="center">
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
 
     <Switch
         android:id="@+id/customC"
@@ -15,30 +15,16 @@
         android:layout_height="wrap_content"
         android:text="Play a C" />
 
-    <LinearLayout
+<!--    TODO: Configure this RecyclerView so that it does not scroll while interacting with the controls-->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/pitchBendFragment"
-            android:name="com.example.android.pitchpad.PitchBendFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"/>
-
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/frameToHoldModulation"
-            android:layout_margin="8dp"/>
-    </LinearLayout>
+        />
 
     <Spinner
+        android:id="@+id/midiInputSpinner"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/midiInputSpinner">
-    </Spinner>
+        android:layout_height="wrap_content"></Spinner>
 
 </LinearLayout>

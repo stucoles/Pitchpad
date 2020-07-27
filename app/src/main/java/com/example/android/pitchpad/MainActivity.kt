@@ -10,7 +10,9 @@ import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
@@ -18,11 +20,22 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     var modHighResolution = false
 
     lateinit var model: MidiControllerViewModel;
+    private lateinit var linearLayoutManager: GridLayoutManager
+    private lateinit var adapter: GenericParameterFragmentRecyclerAdapter
+
+    private var MidiList = arrayListOf<MidiControlType>(
+        MidiControlType("Modulation", 1),
+        MidiControlType("Breath", 2),
+        MidiControlType("Portamento", 5),
+        MidiControlType("Pan", 10, startsAtHalf = true)
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         Log.v("MainActivity.onCreate", "onCreate run")
+
+
 
         try {
             //assign switch to a value to later give it an action
@@ -30,16 +43,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
             model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
 
-            val modWheel = GenericParameterFragment()
-
             val sourcesSpinner = findViewById<Spinner>(R.id.midiInputSpinner)
 
-            modWheel.arguments = modWheel.makeGenericBundle("Modulation", 1)
+            linearLayoutManager = GridLayoutManager(this, 2)
+            recyclerView.layoutManager = linearLayoutManager
+            adapter = GenericParameterFragmentRecyclerAdapter(MidiList, model)
+            recyclerView.adapter = adapter
 
-            val fragmentManager = supportFragmentManager
-            val fragmentTransaction = fragmentManager.beginTransaction()
-            fragmentTransaction.add(R.id.frameToHoldModulation, modWheel)
-            fragmentTransaction.commit()
 
             model.midiEnabledSuccessfully.observe(
                 this,

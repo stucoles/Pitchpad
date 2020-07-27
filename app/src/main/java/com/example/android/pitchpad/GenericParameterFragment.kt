@@ -16,6 +16,8 @@ class GenericParameterFragment : Fragment() {
 //        super.onCreate(savedInstanceState)
 //    }
 
+    val viewModel : MidiControllerViewModel by activityViewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -32,7 +34,7 @@ class GenericParameterFragment : Fragment() {
 
         //set up the dataBinding and the viewModel
         val binding = FragmentGenericParameterBinding.inflate(layoutInflater, container, false)
-        val viewModel : MidiControllerViewModel by activityViewModels()
+        //val viewModel : MidiControllerViewModel by activityViewModels()
         binding.midiControllerModel = viewModel
         binding.executePendingBindings()
 
@@ -72,10 +74,6 @@ class GenericParameterFragment : Fragment() {
                 genericWheel.progress = 0
             }
 
-
-
-
-
         }
         // Inflate the layout for this fragment
         return binding.root
@@ -94,6 +92,16 @@ class GenericParameterFragment : Fragment() {
         bundleToReturn.putBoolean("highResolution", highResolution)
         bundleToReturn.putBoolean("startsAtHalf", startsAtHalf)
         bundleToReturn.putInt("channel", channel)
+        return bundleToReturn
+    }
+
+    fun makeGenericBundle(midiControlType: MidiControlType) : Bundle {
+        val bundleToReturn = Bundle()
+        bundleToReturn.putString("name", midiControlType.name)
+        bundleToReturn.putInt("controlNum", midiControlType.controlNumber)
+        bundleToReturn.putBoolean("highResolution", midiControlType.highResolution)
+        bundleToReturn.putBoolean("startsAtHalf", midiControlType.startsAtHalf)
+        bundleToReturn.putInt("channel", midiControlType.channel)
         return bundleToReturn
     }
 }
