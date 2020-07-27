@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Button
 import android.widget.Spinner
 import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
@@ -13,21 +14,28 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.math.max
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     var modHighResolution = false
 
+    var cols = 1
+
     lateinit var model: MidiControllerViewModel;
-    private lateinit var linearLayoutManager: GridLayoutManager
+    private lateinit var gridLayoutManager: GridLayoutManager
     private lateinit var adapter: GenericParameterFragmentRecyclerAdapter
 
     private var MidiList = arrayListOf<MidiControlType>(
         MidiControlType("Modulation", 1),
         MidiControlType("Breath", 2),
         MidiControlType("Portamento", 5),
-        MidiControlType("Pan", 10, startsAtHalf = true)
+        MidiControlType("Pan", 10, startsAtHalf = true),
+        MidiControlType("Foot", 4),
+        MidiControlType("Balance", 8, startsAtHalf = true),
+        MidiControlType("Effect 1", 12),
+        MidiControlType("Effect 2", 13, startsAtHalf = true, highResolution = true)
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,12 +52,28 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             model = ViewModelProvider(this).get(MidiControllerViewModel::class.java)
 
             val sourcesSpinner = findViewById<Spinner>(R.id.midiInputSpinner)
+            //TODO: dynamically adjust number of columns on-screen after scrolling behavior is sorted
+            val addColButton = findViewById<Button>(R.id.addCols)
+            val removeColButton = findViewById<Button>(R.id.removeCols)
 
-            linearLayoutManager = GridLayoutManager(this, 2)
-            recyclerView.layoutManager = linearLayoutManager
+
+
+            gridLayoutManager = HorizontalScrollingGridLayoutManager(this, cols)
+            recyclerView.addItemDecoration(GridLayoutDecoration())
+            recyclerView.layoutManager = gridLayoutManager
             adapter = GenericParameterFragmentRecyclerAdapter(MidiList, model)
             recyclerView.adapter = adapter
 
+            addColButton.setOnClickListener {
+                cols += 1
+                gridLayoutManager.spanCount = cols
+            }
+
+            removeColButton.setOnClickListener {
+                cols -= 1
+                cols = max(cols, 1)
+                gridLayoutManager.spanCount = cols
+            }
 
             model.midiEnabledSuccessfully.observe(
                 this,

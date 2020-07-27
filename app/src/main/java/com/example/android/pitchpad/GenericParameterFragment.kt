@@ -10,6 +10,7 @@ import androidx.fragment.app.activityViewModels
 import com.example.android.pitchpad.databinding.FragmentGenericParameterBinding
 
 
+//todo: support pitch bend
 class GenericParameterFragment : Fragment() {
 
 //    override fun onCreate(savedInstanceState: Bundle?) {

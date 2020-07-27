@@ -44,7 +44,7 @@ class GenericParameterFragmentRecyclerAdapter(
         private var view: View = v
         private var midiControlType: MidiControlType? = null
 
-        private fun halfValue(midiControlType: MidiControlType) : Int {
+        private fun halfValue(midiControlType: MidiControlType): Int {
             return 50
         }
 
@@ -68,15 +68,19 @@ class GenericParameterFragmentRecyclerAdapter(
             }
 
             view.genericWheel.setOnReleaseListener {
-                if(midiControlType.startsAtHalf){
+                if (midiControlType.startsAtHalf) {
                     view.genericWheel.progress = halfValue(midiControlType)
-                }
-                else{
+                } else {
                     view.genericWheel.progress = 0
                 }
             }
 
-            view.genericWheel.progress = 0
+            if (midiControlType.startsAtHalf) {
+                view.genericWheel.progress = halfValue(midiControlType)
+            }
+            else{
+                view.genericWheel.progress = 0
+            }
 
         }
 
